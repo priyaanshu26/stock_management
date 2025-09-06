@@ -1,0 +1,25 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "stockmanagement-a9ca1",
+          "appId": "1:660131140128:android:ba8152534ac49a5c876245",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "stockmanagement-a9ca1",
+          "configurations": {
+            "android": "1:660131140128:android:ba8152534ac49a5c876245",
+            "web": "1:660131140128:web:fb4965ef2c687931876245"
+          }
+        }
+      }
+    }
+  }
+}

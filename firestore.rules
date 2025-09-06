@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Users collection - allow self-access and admin management
+    match /users/{userId} {
+      // Allow users to read and write their own data (this must come first to avoid circular dependency)
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Allow authenticated users to read all users if they are admin
+      // This works because the user can read their own document first to check admin status
+      allow read: if isAuthenticated() && 
+                     exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      
+      // Allow authenticated users to update any user if they are admin
+      allow write: if isAuthenticated() && 
+                      exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Categories collection - admin only management
+    match /categories/{categoryId} {
+      // Allow all authenticated users to read categories (for product creation/editing)
+      allow read: if isAuthenticated();
+      
+      // Only admins can create, update, or delete categories
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Products collection
+    match /products/{productId} {
+      // Allow all authenticated users full access
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Transactions collection
+    match /transactions/{transactionId} {
+      // Allow all authenticated users full access
+      allow read, write: if isAuthenticated();
+    }
+  }
+}
