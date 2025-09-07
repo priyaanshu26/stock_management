@@ -67,3 +67,6 @@ web/build/
 
 # macOS build artifacts
 macos/build/
+
+# Kiro specs and development files
+.kiro/
