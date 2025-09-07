@@ -146,17 +146,6 @@ lib/
 }
 ```
 
-## 🧪 Testing
-
-Run the test suite:
-```bash
-flutter test
-```
-
-For integration tests:
-```bash
-flutter drive --target=test_driver/app.dart
-```
 
 ## 📦 Dependencies
 

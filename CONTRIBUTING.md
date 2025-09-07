@@ -4,7 +4,7 @@ First off, thank you for considering contributing to Stock Management System! It
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold our Code of Conduct. Please report unacceptable behavior to [project-email].
+By participating in this project, you are expected to uphold our Code of Conduct. Please report unacceptable behavior to [priyanshu.171561@gmail.com].
 
 ## How Can I Contribute?
 
@@ -34,9 +34,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Make your changes
-4. Add tests for your changes (if applicable)
-5. Ensure the test suite passes (`flutter test`)
-6. Make sure your code follows the project's style guidelines
+4. Make sure your code follows the project's style guidelines
 7. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 8. Push to the branch (`git push origin feature/AmazingFeature`)
 9. Open a Pull Request
@@ -93,18 +91,9 @@ lib/
 
 ## Testing
 
-* Write tests for new features
-* Ensure all existing tests pass
-* Add integration tests for complex features
-* Test on multiple devices/screen sizes
-
-```bash
-# Run unit tests
-flutter test
-
-# Run tests with coverage
-flutter test --coverage
-```
+* Test your changes on multiple devices/screen sizes
+* Ensure the app works correctly across different scenarios
+* Verify your changes don't break existing functionality
 
 ## Documentation
 
