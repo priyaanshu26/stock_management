@@ -43,3 +43,27 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase configuration files (sensitive)
+# Uncomment these lines if you want to keep Firebase config private
+# android/app/google-services.json
+# ios/Runner/GoogleService-Info.plist
+# lib/firebase_options.dart
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Generated files
+lib/generated/
+
+# Test coverage
+coverage/
+lcov.info
+
+# Web build artifacts
+web/build/
+
+# macOS build artifacts
+macos/build/

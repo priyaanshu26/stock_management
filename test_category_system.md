@@ -42,10 +42,10 @@
 - Added "Manage Categories" quick action
 - Easy navigation to category management
 
-### 8. Default Categories Setup (`lib/scripts/setup_default_categories.dart`)
-- Automatic creation of common categories
-- Prevents duplicates
-- Runs on first app initialization
+### 8. Default Categories Setup
+- Categories can be created manually through the admin interface
+- Category management is handled through the CategoryProvider
+- Admins can pre-populate categories as needed
 
 ## Key Features
 

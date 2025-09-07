@@ -20,12 +20,11 @@ If the user already exists in the system but doesn't have admin privileges, you 
 4. Find the user in the user list
 5. Click "Make Admin" next to their name
 
-#### Method 2: Using the Admin Script
-1. Run the admin script from the project root:
-   ```bash
-   flutter run lib/scripts/make_admin.dart
-   ```
-   This will automatically promote `priyanshu.171561@gmail.com` to admin if they exist in the system.
+#### Method 2: Manual Database Update
+1. Access your Firestore console directly
+2. Navigate to the "users" collection
+3. Find the document for `priyanshu.171561@gmail.com`
+4. Update the "role" field to "admin"
 
 ## Admin Features
 
@@ -62,7 +61,7 @@ const List<String> adminEmails = [
 ### User Not Getting Admin Access
 1. Verify the email is exactly `priyanshu.171561@gmail.com` (case-sensitive)
 2. Check if the user document exists in Firestore
-3. Use the admin script to manually promote the user
+3. Manually update the user's role in Firestore console
 4. Restart the app after role changes
 
 ### Admin Panel Not Visible

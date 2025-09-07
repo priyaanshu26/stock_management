@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/product_category.dart';
 import '../services/firestore_service.dart';
-import '../scripts/setup_default_categories.dart';
 
 class CategoryProvider extends ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
@@ -17,7 +16,6 @@ class CategoryProvider extends ChangeNotifier {
 
   CategoryProvider() {
     _loadCategories();
-    _setupDefaultCategoriesIfNeeded();
   }
 
   // Load categories with real-time updates
@@ -129,17 +127,4 @@ class CategoryProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Setup default categories if none exist
-  Future<void> _setupDefaultCategoriesIfNeeded() async {
-    try {
-      // Wait a bit for the stream to initialize
-      await Future.delayed(const Duration(milliseconds: 1000));
-      
-      if (_categories.isEmpty) {
-        await DefaultCategoriesSetup.setupDefaultCategories();
-      }
-    } catch (e) {
-      // Handle error silently
-    }
-  }
 }
