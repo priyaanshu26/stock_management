@@ -46,6 +46,9 @@ dependencies:
   # File operations and sharing
   path_provider: ^2.1.4
   share_plus: ^10.0.2
+  
+  # Excel file generation
+  excel: ^4.0.6
 
 dev_dependencies:
   flutter_test:

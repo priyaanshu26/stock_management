@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:excel/excel.dart' as excel;
 import '../providers/auth_provider.dart';
 import '../providers/inventory_provider.dart';
 import '../models/product.dart';
@@ -458,16 +460,24 @@ class _ProductsScreenState extends State<ProductsScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final snackBar = ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('CSV exported successfully! (${products.length} products)'),
             backgroundColor: Colors.green,
+            duration: const Duration(days: 365), // Set very long duration to prevent auto-dismiss
             action: SnackBarAction(
               label: 'Share Again',
               onPressed: () => Share.shareXFiles([XFile(file.path)]),
             ),
           ),
         );
+        
+        // Manually dismiss after 5 seconds
+        Timer(const Duration(seconds: 5), () {
+          if (mounted) {
+            snackBar.close();
+          }
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -498,46 +508,138 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 Text('Generating Excel file...'),
               ],
             ),
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 3),
           ),
         );
       }
 
-      // For now, we'll create a tab-separated values file that Excel can open
-      // This is a simple approach that doesn't require additional dependencies
-      String tsvContent = 'Product Name\tCategory\tStock\tCost Price\tSelling Price\tProfit per Unit\n';
+      // Create a new Excel workbook
+      final workbook = excel.Excel.createExcel();
+      final sheet = workbook['Products']; // Create sheet named 'Products'
       
-      for (Product product in products) {
-        final profit = product.sellingPrice - product.costPrice;
-        tsvContent += '${product.name}\t${product.category}\t${product.stock}\t${product.costPrice.toStringAsFixed(2)}\t${product.sellingPrice.toStringAsFixed(2)}\t${profit.toStringAsFixed(2)}\n';
+      // Remove default sheet if it exists
+      if (workbook.tables.containsKey('Sheet1')) {
+        workbook.delete('Sheet1');
       }
 
-      // Get temporary directory
+      // Add headers with styling
+      const headers = [
+        'Product Name',
+        'Category', 
+        'Stock',
+        'Cost Price (₹)',
+        'Selling Price (₹)',
+        'Profit per Unit (₹)',
+        'Total Value (₹)',
+        'Created Date'
+      ];
+
+      // Style for headers
+      final headerStyle = excel.CellStyle(
+        backgroundColorHex: excel.ExcelColor.blue,
+        fontColorHex: excel.ExcelColor.white,
+        bold: true,
+        horizontalAlign: excel.HorizontalAlign.Center,
+      );
+
+      // Add headers to first row
+      for (int i = 0; i < headers.length; i++) {
+        final cell = sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0));
+        cell.value = excel.TextCellValue(headers[i]);
+        cell.cellStyle = headerStyle;
+      }
+
+      // Add product data
+      for (int i = 0; i < products.length; i++) {
+        final product = products[i];
+        final profit = product.sellingPrice - product.costPrice;
+        final totalValue = product.stock * product.sellingPrice;
+        final rowIndex = i + 1;
+
+        // Product Name
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: rowIndex))
+            .value = excel.TextCellValue(product.name);
+        
+        // Category
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: rowIndex))
+            .value = excel.TextCellValue(product.category);
+        
+        // Stock
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: rowIndex))
+            .value = excel.IntCellValue(product.stock);
+        
+        // Cost Price
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: rowIndex))
+            .value = excel.DoubleCellValue(product.costPrice);
+        
+        // Selling Price
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 4, rowIndex: rowIndex))
+            .value = excel.DoubleCellValue(product.sellingPrice);
+        
+        // Profit per Unit
+        final profitCell = sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 5, rowIndex: rowIndex));
+        profitCell.value = excel.DoubleCellValue(profit);
+        
+        // Color code profit (green if positive, red if negative)
+        if (profit > 0) {
+          profitCell.cellStyle = excel.CellStyle(fontColorHex: excel.ExcelColor.green);
+        } else if (profit < 0) {
+          profitCell.cellStyle = excel.CellStyle(fontColorHex: excel.ExcelColor.red);
+        }
+        
+        // Total Value
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 6, rowIndex: rowIndex))
+            .value = excel.DoubleCellValue(totalValue);
+        
+        // Created Date
+        sheet.cell(excel.CellIndex.indexByColumnRow(columnIndex: 7, rowIndex: rowIndex))
+            .value = excel.TextCellValue(product.createdAt.toString().split(' ')[0]); // Just the date part
+      }
+
+      // Auto-fit columns (approximate)
+      for (int i = 0; i < headers.length; i++) {
+        sheet.setColumnWidth(i, headers[i].length.toDouble() + 5.0);
+      }
+
+      // Get temporary directory and create file
       final directory = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final file = File('${directory.path}/products_export_$timestamp.xlsx');
       
-      // Write TSV content to file (Excel can open TSV files)
-      await file.writeAsString(tsvContent);
+      // Save Excel file
+      final excelBytes = workbook.encode();
+      if (excelBytes != null) {
+        await file.writeAsBytes(excelBytes);
 
-      // Share the file
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Products Export - ${products.length} products (Excel format)',
-        subject: 'Stock Management - Products Export (Excel)',
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Excel file exported successfully! (${products.length} products)'),
-            backgroundColor: Colors.green,
-            action: SnackBarAction(
-              label: 'Share Again',
-              onPressed: () => Share.shareXFiles([XFile(file.path)]),
-            ),
-          ),
+        // Share the file
+        await Share.shareXFiles(
+          [XFile(file.path)],
+          text: 'Products Export - ${products.length} products (Excel format)',
+          subject: 'Stock Management - Products Export (Excel)',
         );
+
+        if (mounted) {
+          final snackBar = ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Excel file exported successfully! (${products.length} products)'),
+              backgroundColor: Colors.green,
+              duration: const Duration(days: 365), // Set very long duration to prevent auto-dismiss
+              action: SnackBarAction(
+                label: 'Share Again',
+                onPressed: () => Share.shareXFiles([XFile(file.path)]),
+              ),
+            ),
+          );
+          
+          // Manually dismiss after 5 seconds
+          Timer(const Duration(seconds: 5), () {
+            if (mounted) {
+              snackBar.close();
+            }
+          });
+        }
+      } else {
+        throw Exception('Failed to generate Excel file');
       }
     } catch (e) {
       if (mounted) {
